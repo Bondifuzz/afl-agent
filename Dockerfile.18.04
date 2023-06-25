@@ -1,0 +1,80 @@
+########################################
+# Base image
+########################################
+
+FROM ubuntu:18.04 as base
+SHELL ["/bin/bash", "-c"]
+ENV PYTHONUNBUFFERED=1
+ENV DEBIAN_FRONTEND="noninteractive"
+WORKDIR /fuzzer
+USER root
+
+RUN apt update
+RUN apt install -y --no-install-recommends git
+
+COPY ./stub/packages/18.04/* /opt/packages/
+RUN dpkg -i /opt/packages/*; \
+	apt install -y -f && \
+	rm -rf /opt/packages
+
+RUN python3.7 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements*.txt ./
+RUN pip3 install -r requirements-prod.txt
+
+########################################
+# Release image
+########################################
+
+FROM ubuntu:18.04
+SHELL ["/bin/bash", "-c"]
+ENV PYTHONUNBUFFERED=1
+ENV DEBIAN_FRONTEND="noninteractive"
+WORKDIR /fuzzer
+
+ARG ENVIRONMENT=dev
+ENV ENVIRONMENT=$ENVIRONMENT
+
+RUN apt update && apt install -y ca-certificates
+COPY ./stub/packages/18.04/* /opt/packages/
+RUN dpkg -i /opt/packages/*; \
+	apt install -y -f && \
+	rm -rf /opt/packages
+
+
+RUN apt update && \
+    apt -y install \
+        build-essential \
+        clang \
+        git \
+        llvm && \
+
+    #GCC_VERSION=$(apt-cache policy gcc | grep "Installed:" | cut -c 16) && \
+    GCC_VERSION=$(gcc -dumpversion | egrep -o "^[0-9]+") && \
+    apt -y install gcc-$GCC_VERSION-plugin-dev && \
+
+    # install afl
+    git clone --depth 1 --branch 4.01c https://github.com/AFLplusplus/AFLplusplus && \
+    cd ./AFLplusplus && \
+    make all && \
+	make install && \
+
+    cd .. && \
+    rm -rf ./AFLplusplus && \
+
+    # cleanup
+    apt -y purge \
+        build-essential \
+        git \
+        gcc-$GCC_VERSION-plugin-dev && \
+
+    apt -y autoremove
+
+
+COPY --from=base /opt/venv /opt/venv
+COPY agent ./agent
+COPY logging.yaml ./
+
+ENV PATH="/opt/venv/bin:$PATH"
+CMD python3 -m agent

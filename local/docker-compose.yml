@@ -1,0 +1,18 @@
+version: '3.3'
+
+services:
+  s3:
+    image: minio/minio@sha256:25d386a141a124993ecc7e3c4b8bce0c796bfa849cb436eb1dd2aeee8782f48d
+    command: server --console-address :9001 /data
+    environment:
+      - MINIO_ROOT_USER=${S3_ACCESS_KEY}
+      - MINIO_ROOT_PASSWORD=${S3_SECRET_KEY}
+    volumes:
+      - type: volume
+        source: minio
+        target: /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+volumes:
+  minio:

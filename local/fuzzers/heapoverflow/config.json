@@ -1,0 +1,4 @@
+{
+    "target": "heapoverflow_fuzzer",
+    "target_args": [ "@@" ]
+}

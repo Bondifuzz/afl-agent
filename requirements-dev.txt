@@ -1,0 +1,4 @@
+-r requirements-base.txt
+python-dotenv
+pdoc3
+black
