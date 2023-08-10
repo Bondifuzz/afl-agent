@@ -48,8 +48,10 @@ RUN DEBIAN_FRONTEND="noninteractive" apt -y install \
         build-essential \
         clang \
         git \
-        llvm \
-        gcc-9-plugin-dev && \
+        llvm && \
+
+    DEBIAN_FRONTEND="noninteractive" apt -y install \
+        gcc-$(gcc -dumpversion | egrep -o "^[0-9]+")-plugin-dev && \
 
     # optimin packages
     DEBIAN_FRONTEND="noninteractive" apt -y install \
@@ -58,14 +60,8 @@ RUN DEBIAN_FRONTEND="noninteractive" apt -y install \
         zlib1g-dev && \
 
     # install afl
-    git clone --depth 1 --branch 4.00c https://github.com/AFLplusplus/AFLplusplus && \
+    git clone --depth 1 --branch v4.08c https://github.com/AFLplusplus/AFLplusplus && \
     cd ./AFLplusplus && \
-    make install && \
-
-    # install optimin(merger)
-    cd ./utils/optimin && \
-    ./build_optimin.sh && \
-    cd build && \
     make install && \
 
 	cd ../../../../ && \
@@ -75,7 +71,7 @@ RUN DEBIAN_FRONTEND="noninteractive" apt -y install \
     apt -y purge \
         build-essential \
         git \
-        gcc-9-plugin-dev \
+        gcc-$(gcc -dumpversion | egrep -o "^[0-9]+")-plugin-dev \
         cmake \
         zlib1g-dev && \
 
