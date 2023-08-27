@@ -1,3 +1,3 @@
-base-agent@git+https://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@github.com/Bondifuzz/base-agent.git@0.1.0
+base-agent@git+https://github.com/Bondifuzz/base-agent.git@0.1.0
 coloredlogs==15.0.1
 PyYAML==5.4.1
